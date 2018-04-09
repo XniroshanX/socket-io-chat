@@ -69,5 +69,6 @@ io.on('connection', function (socket) {
 
 
 http.listen(port, function () {
-    console.log('listening on *:' + port);
+	console.log('\r\nsocket-io-chat started');
+    console.log('type http://localhost:' + port + ' in browser.\r\n');
 });
