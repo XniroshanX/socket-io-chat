@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html class="h-100">
+    <head>
+        <title>socket-io-chat</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+        <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+        <style>
+            .overfl-auto-x {
+                overflow-y: auto;
+            }
+        </style>
+    </head>
+    <body class="h-100">
+        <div class="container-fluid h-100">
+            <div class="row" id="login_section">
+                <div class="col-md-12 text-center mt-3 mb-3">
+                    <h3>socket-io-chat</h3>
+                    <hr>
+                </div>
+                <div class="col-md-4 offset-md-4">
+                    <form role="form" id="login">
+                        <div class="form-group">
+                            <input type="text" class="form-control" id="username" name="username" placeholder="Username"/>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block btn-sm">Login</button>
+                    </form>
+                </div>
+            </div>
+            <div class="row d-none h-100" id="chat_section">
+                <div class="col-md-12 h-100">
+                    <div class="row h-100">
+                        <div class="col-md-6 offset-md-3 align-self-start mt-2 h-75 overfl-auto-x ">
+                            <ul class="list-unstyled" id="message_wrapper"></ul>
+                        </div>
+                        <div class="col-md-6 offset-md-3 panel panel-default chat-wrapper align-self-end mb-2">
+                            <form id="send_message">
+                                <div class="form-group">
+                                    <label for="user">To</label>
+                                    <select class="form-control" id="user" name="user">
+                                        <option value="all">All</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <textarea class="form-control" id="message" name="message"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-block btn-sm">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>        
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+        <script>
+            $(function () {
+                var socket = io();
+                /*
+                 * Login in to chat server
+                 */
+                $("#login").on("submit", function (e) {
+                    e.preventDefault();
+                    var username = $("#username").val();
+                    if (!username.length > 0) {
+                        return false;
+                    }
+                    socket.emit('online', {
+                        username: username
+                    });
+                    $("#login_section").addClass("d-none");
+                    $("#chat_section").removeClass("d-none");
+                });
+
+                socket.on('receive_message', function (data) {
+                    $("#message_wrapper").append("<li class='mt-1'><i class='ion-android-person text-info mr-2'></i>" + data.message + "</li>");
+                });
+
+                socket.on('users', function (data) {
+                    $('#user').empty();
+                    $("#user").append("<option value='all'>All</option>");
+                    for (var key in data) {
+                        $("#user").append("<option value='" + data[key].username + "'>" + data[key].username + "</option>");
+                    }
+                });
+
+                $("#send_message").on("submit", function (e) {
+                    e.preventDefault();
+                    var message = "<strong>" + $('#username').val() + ":</strong> " + $("#message").val();
+                    var username = $('#user').val();
+                    socket.emit('send_message', {
+                        username: username,
+                        message: message,
+                    });
+                    var message = $("#message").val() + " :<strong>" + $('#username').val() + "</strong> ";
+                    $("#message_wrapper").append("<li class='text-right mt-1'>" + message + " <i class='ion-android-person mr-2 text-primary'></i></li>");
+                    $("#message").val("");
+                });
+
+            });
+
+        </script>
+    </body>
+</html>
